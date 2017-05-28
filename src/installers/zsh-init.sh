@@ -1,5 +1,7 @@
 #!/bin/bash
 
-echo "Installing pug zsh into .zshrc"
-echo "# Load pug bits" >> "$HOME/.zshrc"
-echo "source \"$1\"" >> "$HOME/.zshrc"
+if ! grep -q "Pug installed" "$HOME/.zshrc"; then
+  echo "Installing pug zsh into .zshrc"
+  echo "# Pug installed" >> "$HOME/.zshrc"
+  echo "source \"$1\"" >> "$HOME/.zshrc"
+fi
