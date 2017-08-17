@@ -1,7 +1,12 @@
 #!/bin/bash
 
-name="$2"
-echo "source '$SOURCE_DIR/zsh/$name/$name.zsh'" >> "$source_dir/pug"
+name="${1?}"
+if ! grep -q "/$name.zsh\$" "$SOURCE_DIR/zsh/pug"; then
+  echo "source '$SOURCE_DIR/zsh/$name/$name.zsh'" >> "$SOURCE_DIR/zsh/pug"
+  echo 'Added to pug file'
+else
+  echo "Already installed to pug file"
+fi
 
 cat<<-EOF
 

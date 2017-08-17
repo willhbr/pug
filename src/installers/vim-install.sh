@@ -1,8 +1,12 @@
 #!/bin/bash
 
-source_dir="${1?}"
-name="${2?}"
-echo "set runtimepath^=$SOURCE_DIR/vim/$name" >> "$source_dir/pug"
+name="${1?}"
+if ! grep -q "/$name\$" "$SOURCE_DIR/vim/pug"; then
+  echo "set runtimepath^=$SOURCE_DIR/vim/$name" >> "$SOURCE_DIR/vim/pug"
+  echo 'Added to pug file'
+else
+  echo "Already installed to pug file"
+fi
 
 cat <<-EOF
 
