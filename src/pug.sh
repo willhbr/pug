@@ -3,23 +3,28 @@
 set -e
 shopt -s nullglob
 
-PUG_DIR='~/.pug'
-INSTALLERS_DIR="$PUG_DIR/installers"
-SOURCE_DIR="$PUG_DIR/source"
+export PUG_DIR="$HOME/.pug"
+export INSTALLERS_DIR="$PUG_DIR/installers"
+export SOURCE_DIR="$PUG_DIR/source"
 
-# Initialize expected file locations
-initialize() {
+help_text=()
+
+defhelp() {
+  local command="${1?}"
+  local text="${2?}"
+  local help_str
+  help_str="$(printf '   %-18s %s' "$command" "$text")"
+  help_text+=("$help_str")
+}
+
+init() {
   mkdir -p "$PUG_DIR"
   mkdir -p "$INSTALLERS_DIR"
   mkdir -p "$SOURCE_DIR"
-
-  for init in "$INSTALLERS_DIR"/*-init.sh; do
-    "$init" "$SOURCE_DIR" "pug"
-  done
 }
 
-# Delete modules
-wipeout() {
+defhelp wipe 'Delete everything'
+cmd.wipe() {
   echo "Remove sources from pug? [y/n]"
   read confirm
   if [ "$confirm" = "y" ]; then
@@ -28,9 +33,12 @@ wipeout() {
   fi
 }
 
-# Print usage information
-print_usage() {
-  echo "That's not how you use this"
+
+defhelp help 'Show this help'
+cmd.help() {
+  for str in "${help_text[@]}"; do
+    echo "$str"
+  done
 }
 
 # Update a module
@@ -46,7 +54,8 @@ clone_or_pull() {
   fi
 }
 
-use() {
+defhelp get 'Clone a dependency'
+cmd.get() {
   local type="${1?}"
   if [ -e "$INSTALLERS_DIR/${type}-install.sh" ]; then
     local url="$2"
@@ -56,22 +65,25 @@ use() {
       name="${name%.git}"
     fi
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
-      "$INSTALLERS_DIR/${type}-install.sh" "$SOURCE_DIR/$type" "$name"
+      "$INSTALLERS_DIR/${type}-install.sh" "$name"
     else
       echo "Failed to install $main_file"
     fi
   else
     echo "Installer for $type doesn't exist"
+    echo "Expected to find in "$INSTALLERS_DIR/${type}-install.sh
     return 1
   fi
 }
 
-remove() {
+defhelp remove 'Remove a dependency'
+cmd.remove() {
   echo "Not implemented"
   exit 1
 }
 
-update() {
+defhelp update 'Rewrite all pug source files from whatever is cloned'
+cmd.update() {
   for pugfile in "$SOURCE_DIR"/*/pug; do
     echo '' > "$pugfile"
   done
@@ -87,7 +99,7 @@ update() {
   done
 }
 
-list() {
+cmd.list() {
   for module in "$SOURCE_DIR"/*/*; do
     if [ -d "$module" ]; then
       echo "${module##*/}"
@@ -95,32 +107,11 @@ list() {
   done
 }
 
-if [ -z "$1" ]; then
-  print_usage
-  exit 1
+cmd="$1"
+if shift && type "cmd.$cmd" > /dev/null 2>&1; then
+  init
+  "cmd.$cmd" "$@"
+else
+  echo "Unknown command $cmd"
+  cmd.help
 fi
-
-case "$1" in
-  use)
-    use "$2" "$3" "$4"
-    ;;
-  update)
-    update
-    ;;
-  remove)
-    remove "$2"
-    ;;
-  wipe)
-    wipeout
-    ;;
-  init)
-    initialize
-    ;;
-  list)
-    list
-    ;;
-  *)
-    echo "Unknown command $1"
-    print_usage
-    exit 2
-esac
