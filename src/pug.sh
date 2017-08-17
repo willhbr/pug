@@ -25,10 +25,14 @@ init() {
 
 defhelp wipe 'Delete everything'
 cmd.wipe() {
-  echo "Remove sources from pug? [y/n]"
+  echo -n 'Remove sources from pug? [y/n] '
   read confirm
   if [ "$confirm" = "y" ]; then
-    rm -r "$SOURCE_DIR"
+    local flags=-r
+    if [ "$1" = '-f' ]; then
+      flags=-rf
+    fi
+    rm "$flags" "$SOURCE_DIR"
     echo "Removed"
   fi
 }
@@ -87,24 +91,32 @@ cmd.update() {
   for pugfile in "$SOURCE_DIR"/*/pug; do
     echo '' > "$pugfile"
   done
+  local count=0
   for module in "$SOURCE_DIR"/*/*; do
     if [ -d "$module" ]; then
+      echo '-------------------------------------'
       local name="${module##*/}"
       echo "Updating $name"
       git -C "$module" pull
       local type="$(dirname "$module")"
       type="${type##*/}"
-      "$INSTALLERS_DIR/${type}-install.sh" "$SOURCE_DIR/$type" "$name"
+      "$INSTALLERS_DIR/${type}-install.sh" "$name"
+      (( count+=1 ))
     fi
   done
+  echo "$count modules updated"
 }
 
+defhelp list 'List installed modules'
 cmd.list() {
+  local count=0
   for module in "$SOURCE_DIR"/*/*; do
     if [ -d "$module" ]; then
       echo "${module##*/}"
+      (( count+=1 ))
     fi
   done
+  echo "$count modules installed"
 }
 
 cmd="$1"
