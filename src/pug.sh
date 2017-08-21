@@ -6,6 +6,7 @@ shopt -s nullglob
 export PUG_DIR="$HOME/.pug"
 export INSTALLERS_DIR="$PUG_DIR/installers"
 export SOURCE_DIR="$PUG_DIR/source"
+export PUG_VERSION=0.1.0
 
 help_text=()
 
@@ -37,12 +38,29 @@ cmd.wipe() {
   fi
 }
 
+defhelp version 'Show the pug version'
+cmd.version() {
+  echo "Pug version $PUG_VERSION"
+}
+
+defhelp installers 'List available installers'
+cmd.installers() {
+  local type_name
+  for installer in "$INSTALLERS_DIR/"*-install; do
+    type_name="${installer##*/}"
+    type_name="${type_name%-install}"
+    echo "$1$type_name"
+  done
+}
 
 defhelp help 'Show this help'
 cmd.help() {
+  echo 'Commands:'
   for str in "${help_text[@]}"; do
     echo "$str"
   done
+  echo 'Installers:'
+  cmd.installers '   '
 }
 
 # Update a module
@@ -86,23 +104,27 @@ cmd.remove() {
   exit 1
 }
 
-defhelp update 'Pull all plugins'
+defhelp update 'Pull all plugins and re-write pugfiles'
 cmd.update() {
   for pugfile in "$SOURCE_DIR"/*/pug; do
-    echo '' > "$pugfile"
+    echo -n '' > "$pugfile"
   done
   local count=0
   for module in "$SOURCE_DIR"/*/*; do
     if [ -d "$module" ]; then
-      echo '-------------------------------------'
       local name="${module##*/}"
       echo "Updating $name"
       git -C "$module" pull
       local type
       type="$(dirname "$module")"
       type="${type##*/}"
-      "$INSTALLERS_DIR/${type}-install" "$name"
+      if ! "$INSTALLERS_DIR/${type}-install" "$name"; then
+        echo "ERROR: Installing $name failed"
+      fi
       (( count+=1 ))
+      echo
+      echo '-------------------------------------'
+      echo
     fi
   done
   echo "$count modules updated"
@@ -123,10 +145,9 @@ cmd.list() {
 defhelp upgrade 'Upgrade pug and installers'
 cmd.upgrade() {
   echo 'Upgrading Pug...'
-  cd /tmp
-  git clone 'https://github.com/javanut13/pug.git'
-  cd pug
-  echo "Installing pug"
+  dest="$(mktemp -d)"
+  git clone 'https://github.com/javanut13/pug.git' "$dest"
+  cd "$dest"
   if [ "$1" != -l ]; then
     echo 'Password may be required to copy pug to /usr/local/bin/pug'
     if ! sudo cp src/pug.sh /usr/local/bin/pug; then

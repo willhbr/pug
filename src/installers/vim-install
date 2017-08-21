@@ -8,6 +8,7 @@ else
   echo "Already installed to pug file"
 fi
 
+if ! grep -q '/vim/pug' "$HOME/.vimrc"; then
 cat <<-EOF
 
 Make sure this is added to your .vimrc file:
@@ -17,3 +18,4 @@ if filereadable(__filepath)
   execute 'source '.fnameescape(__filepath)
 endif
 EOF
+fi

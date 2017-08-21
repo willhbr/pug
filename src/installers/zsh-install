@@ -8,6 +8,7 @@ else
   echo "Already installed to pug file"
 fi
 
+if ! grep -q '/zsh/pug' "$HOME/.zshrc"; then
 cat<<-EOF
 
 Make sure this is in your .zshrc file:
@@ -15,3 +16,4 @@ Make sure this is in your .zshrc file:
 source '$SOURCE_DIR/zsh/pug'
 
 EOF
+fi
