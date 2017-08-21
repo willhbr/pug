@@ -67,10 +67,10 @@ The first time you install a dependency of a certain type, you will need to add 
 source "$HOME/.pug/source/zsh/pug"
 ```
 
-The `pug` file in each type directory contains the code needed to load every plugin for that type. These can be rebuilt by looking at the currently cloned repos with:
+You can update all plugins with:
 
 ```shell
-pug reload
+pug update
 ```
 
 All of your sources - everything stored in `.pug/source` - can be removed with:

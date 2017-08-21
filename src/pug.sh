@@ -86,7 +86,7 @@ cmd.remove() {
   exit 1
 }
 
-defhelp update 'Rewrite all pug source files from whatever is cloned'
+defhelp update 'Pull all plugins'
 cmd.update() {
   for pugfile in "$SOURCE_DIR"/*/pug; do
     echo '' > "$pugfile"
@@ -118,6 +118,27 @@ cmd.list() {
     fi
   done
   echo "$count modules installed"
+}
+
+defhelp upgrade 'Upgrade pug and installers'
+cmd.upgrade() {
+  echo 'Upgrading Pug...'
+  cd /tmp
+  git clone 'https://github.com/javanut13/pug.git'
+  cd pug
+  echo "Installing pug"
+  if [ "$1" != -l ]; then
+    echo 'Password may be required to copy pug to /usr/local/bin/pug'
+    if ! sudo cp src/pug.sh /usr/local/bin/pug; then
+      echo 'Could not copy to /usr/local/bin (Did sudo work?)'
+      echo 'To use pug copy this file into your PATH as "pug":'
+      echo "$(realpath src/pug.sh)"
+    fi
+  fi
+
+  echo 'Copying installers to ~/.pug/installers'
+  mkdir -p ~/.pug/installers
+  cp src/installers/* ~/.pug/installers
 }
 
 dependency() {
