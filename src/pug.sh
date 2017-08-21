@@ -6,7 +6,7 @@ shopt -s nullglob
 export PUG_DIR="$HOME/.pug"
 export INSTALLERS_DIR="$PUG_DIR/installers"
 export SOURCE_DIR="$PUG_DIR/source"
-export PUG_VERSION=0.1.0
+export PUG_VERSION=0.1.1
 
 help_text=()
 
@@ -79,7 +79,7 @@ clone_or_pull() {
 defhelp get 'Clone a dependency'
 cmd.get() {
   local type="${1?}"
-  if [ -e "$INSTALLERS_DIR/${type}-install.sh" ]; then
+  if [ -e "$INSTALLERS_DIR/${type}-install" ]; then
     local url="$2"
     local name="$3"
     if [ -z "$name" ]; then
@@ -87,13 +87,13 @@ cmd.get() {
       name="${name%.git}"
     fi
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
-      "$INSTALLERS_DIR/${type}-install.sh" "$name"
+      "$INSTALLERS_DIR/${type}-install" "$name"
     else
       echo "Failed to install $name"
     fi
   else
     echo "Installer for $type doesn't exist"
-    echo "Expected to find in $INSTALLERS_DIR/${type}-install.sh"
+    echo "Expected to find in $INSTALLERS_DIR/${type}-install"
     return 1
   fi
 }

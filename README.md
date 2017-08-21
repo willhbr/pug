@@ -30,7 +30,7 @@ cd pug
 ./install.sh
 ```
 
-This adds the `pug` script into `/usr/local/bin` - you can put it anywhere in your `$PATH` if that suits you better. Installers for Vim and ZSH are copied to `~/.pug/installers`. This is where you can add your own installers (for another utility), just make sure it's named `UTILITY-install.sh`.
+This adds the `pug` script into `/usr/local/bin` - you can put it anywhere in your `$PATH` if that suits you better. Installers for Vim and ZSH are copied to `~/.pug/installers`. This is where you can add your own installers (for another utility), just make sure it's named `UTILITY-install`.
 
 ## Usage with a Config File
 
