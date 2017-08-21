@@ -64,18 +64,18 @@ cmd.get() {
   if [ -e "$INSTALLERS_DIR/${type}-install.sh" ]; then
     local url="$2"
     local name="$3"
-    if [ -z "$main_file" ]; then
+    if [ -z "$name" ]; then
       name="${url##*/}"
       name="${name%.git}"
     fi
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
       "$INSTALLERS_DIR/${type}-install.sh" "$name"
     else
-      echo "Failed to install $main_file"
+      echo "Failed to install $name"
     fi
   else
     echo "Installer for $type doesn't exist"
-    echo "Expected to find in "$INSTALLERS_DIR/${type}-install.sh
+    echo "Expected to find in $INSTALLERS_DIR/${type}-install.sh"
     return 1
   fi
 }
@@ -98,7 +98,8 @@ cmd.update() {
       local name="${module##*/}"
       echo "Updating $name"
       git -C "$module" pull
-      local type="$(dirname "$module")"
+      local type
+      type="$(dirname "$module")"
       type="${type##*/}"
       "$INSTALLERS_DIR/${type}-install" "$name"
       (( count+=1 ))
