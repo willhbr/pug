@@ -100,7 +100,7 @@ cmd.update() {
       git -C "$module" pull
       local type="$(dirname "$module")"
       type="${type##*/}"
-      "$INSTALLERS_DIR/${type}-install.sh" "$name"
+      "$INSTALLERS_DIR/${type}-install" "$name"
       (( count+=1 ))
     fi
   done
@@ -117,6 +117,41 @@ cmd.list() {
     fi
   done
   echo "$count modules installed"
+}
+
+dependency() {
+  local installer="$1"
+  local url
+  case "$2" in
+    from:)
+      url="$3" ;;
+    github:)
+      url="https://github.com/$3.git" ;;
+    gitlab:)
+      url="https://gitlab.com/$3.git" ;;
+    *)
+      echo "Unknown arg $2"
+      return 1 ;;
+  esac
+  cmd.get "$installer" "$url"
+}
+
+defhelp load 'Used for loading config files'
+cmd.load() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    echo "$file does not exist or is not a file"
+    return 1
+  fi
+
+  local type_name
+  for installer in "$INSTALLERS_DIR/"*-install; do
+    type_name="${installer##*/}"
+    type_name="${type_name%-install}"
+    eval "function ${type_name} { dependency '$type_name' \"\$@\"; }"
+  done
+
+  source "$file"
 }
 
 cmd="$1"
