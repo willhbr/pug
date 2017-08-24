@@ -6,7 +6,7 @@ shopt -s nullglob
 export PUG_DIR="$HOME/.pug"
 export INSTALLERS_DIR="$PUG_DIR/installers"
 export SOURCE_DIR="$PUG_DIR/source"
-export PUG_VERSION=0.1.1
+export PUG_VERSION=0.2.0
 
 help_text=()
 
