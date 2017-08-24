@@ -153,7 +153,7 @@ cmd.upgrade() {
     if ! sudo cp src/pug.sh /usr/local/bin/pug; then
       echo 'Could not copy to /usr/local/bin (Did sudo work?)'
       echo 'To use pug copy this file into your PATH as "pug":'
-      echo "$(realpath src/pug.sh)"
+      realpath src/pug.sh
     fi
   fi
 
@@ -204,12 +204,11 @@ cmd.load() {
   source "$file"
 }
 
-after_install() {}
+after_install() { true; }
 
 defhelp installer 'Used for loading installers'
 cmd.installer() {
   local script="$1"
-  shift 2
   source "$script"
   local type_name
   type_name="$(installer_type "$script")"

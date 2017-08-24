@@ -8,7 +8,7 @@ install_from_repo() {
     if ! sudo cp src/pug.sh /usr/local/bin/pug; then
       echo 'Could not copy to /usr/local/bin (Did sudo work?)'
       echo 'To use pug copy this file into your PATH as "pug":'
-      echo "$(realpath src/pug.sh)"
+      realpath src/pug.sh
     fi
   fi
 
