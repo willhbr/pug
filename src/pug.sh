@@ -87,7 +87,7 @@ cmd.get() {
       name="${name%.git}"
     fi
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
-      "$INSTALLERS_DIR/${type}-install" install "$name"
+      "$INSTALLERS_DIR/${type}-install" "$name"
     else
       echo "Failed to install $name"
     fi
@@ -118,7 +118,7 @@ cmd.update() {
       local type
       type="$(dirname "$module")"
       type="${type##*/}"
-      if ! "$INSTALLERS_DIR/${type}-install" install "$name"; then
+      if ! "$INSTALLERS_DIR/${type}-install" "$name"; then
         echo "ERROR: Installing $name failed"
       fi
       (( count+=1 ))
@@ -212,7 +212,7 @@ cmd.installer() {
   source "$script"
   local type_name
   type_name="$(installer_type "$script")"
-  local name="$1"
+  local name="$2"
   if ! is_already_installed "$name"; then
     echo -n 'Installing... '
     echo

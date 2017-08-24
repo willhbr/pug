@@ -1,10 +1,8 @@
 #!/usr/local/bin/pug installer
 
-# Env: SOURCE_DIR
-
 # Args: name of dependency
 pugfile_text() {
-  echo "source '$SOURCE_DIR/zsh/$name/$name.zsh'"
+  echo "source '$SOURCE_DIR/zsh/$1/$1.zsh'"
 }
 
 source_help_text() {
