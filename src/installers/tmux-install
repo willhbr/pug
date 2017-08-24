@@ -1,0 +1,19 @@
+#!/usr/local/bin/pug installer
+
+# Args: name of dependency
+pugfile_text() {
+  echo "source-file '$SOURCE_DIR/tmux/$1/$1.conf'"
+}
+
+source_help_text() {
+ cat <<-EOF
+Make sure this is added to your .tmux.conf file:
+
+source-file '$SOURCE_DIR/tmux/pug'
+EOF
+}
+
+# Args: name of dependency
+is_already_installed() {
+  grep -q "/$1\$" "$SOURCE_DIR/tmux/pug"
+}
