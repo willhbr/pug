@@ -87,7 +87,7 @@ cmd.get() {
       name="${name%.git}"
     fi
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
-      "$INSTALLERS_DIR/${type}-install" "$name"
+      "$INSTALLERS_DIR/${type}-install" install "$name"
     else
       echo "Failed to install $name"
     fi
@@ -118,7 +118,7 @@ cmd.update() {
       local type
       type="$(dirname "$module")"
       type="${type##*/}"
-      if ! "$INSTALLERS_DIR/${type}-install" "$name"; then
+      if ! "$INSTALLERS_DIR/${type}-install" install "$name"; then
         echo "ERROR: Installing $name failed"
       fi
       (( count+=1 ))
@@ -179,6 +179,13 @@ dependency() {
   cmd.get "$installer" "$url"
 }
 
+installer_type() {
+  local type_name
+  type_name="${1##*/}"
+  type_name="${type_name%-install}"
+  echo "$type_name"
+}
+
 defhelp load 'Used for loading config files'
 cmd.load() {
   local file="$1"
@@ -195,6 +202,33 @@ cmd.load() {
   done
 
   source "$file"
+}
+
+after_install() {}
+
+defhelp installer 'Used for loading installers'
+cmd.installer() {
+  local script="$1"
+  shift 2
+  source "$script"
+  local type_name
+  type_name="$(installer_type "$script")"
+  local name="$1"
+  if ! is_already_installed "$name"; then
+    echo -n 'Installing... '
+    echo
+    if pugfile_text "$name" >> "$SOURCE_DIR/$type_name/pug"; then
+      after_install new "$name"
+      echo 'Done.'
+    else
+      echo 'Failed.'
+    fi
+  else
+    after_install already "$name"
+  fi
+  if ! grep -q '/vim/pug' "$HOME/.vimrc"; then
+    source_help_text
+  fi
 }
 
 cmd="$1"

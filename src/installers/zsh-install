@@ -1,19 +1,21 @@
-#!/bin/bash
+#!/usr/local/bin/pug installer
 
-name="${1?}"
-if ! grep -q "/$name.zsh\$" "$SOURCE_DIR/zsh/pug"; then
-  echo "source '$SOURCE_DIR/zsh/$name/$name.zsh'" >> "$SOURCE_DIR/zsh/pug"
-  echo 'Added to pug file'
-else
-  echo "Already installed to pug file"
-fi
+# Env: SOURCE_DIR
 
-if ! grep -q '/zsh/pug' "$HOME/.zshrc"; then
-cat<<-EOF
+# Args: name of dependency
+pugfile_text() {
+  echo "source '$SOURCE_DIR/zsh/$name/$name.zsh'"
+}
 
+source_help_text() {
+ cat <<-EOF
 Make sure this is in your .zshrc file:
 
 source '$SOURCE_DIR/zsh/pug'
-
 EOF
-fi
+}
+
+# Args: name of dependency
+is_already_installed() {
+  grep -q "/$1\$" "$SOURCE_DIR/zsh/pug"
+}

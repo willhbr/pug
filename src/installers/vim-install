@@ -1,16 +1,12 @@
-#!/bin/bash
+#!/usr/local/bin/pug installer
 
-name="${1?}"
-if ! grep -q "/$name\$" "$SOURCE_DIR/vim/pug"; then
-  echo "set runtimepath^=$SOURCE_DIR/vim/$name" >> "$SOURCE_DIR/vim/pug"
-  echo 'Added to pug file'
-else
-  echo "Already installed to pug file"
-fi
+# Args: name of dependency
+pugfile_text() {
+  echo "set runtimepath^=$SOURCE_DIR/vim/$1"
+}
 
-if ! grep -q '/vim/pug' "$HOME/.vimrc"; then
-cat <<-EOF
-
+source_help_text() {
+ cat <<-EOF
 Make sure this is added to your .vimrc file:
 
 let __filepath = expand("$SOURCE_DIR/vim/pug")
@@ -18,4 +14,9 @@ if filereadable(__filepath)
   execute 'source '.fnameescape(__filepath)
 endif
 EOF
-fi
+}
+
+# Args: name of dependency
+is_already_installed() {
+  grep -q "/$1\$" "$SOURCE_DIR/vim/pug"
+}
