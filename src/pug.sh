@@ -6,7 +6,7 @@ shopt -s nullglob
 export PUG_DIR="$HOME/.pug"
 export INSTALLERS_DIR="$PUG_DIR/installers"
 export SOURCE_DIR="$PUG_DIR/source"
-export PUG_VERSION=0.2.0
+export PUG_VERSION=0.3.0
 
 help_text=()
 
@@ -27,7 +27,7 @@ init() {
 defhelp wipe 'Delete everything'
 cmd.wipe() {
   echo -n 'Remove sources from pug? [y/n] '
-  read confirm
+  read -r confirm
   if [ "$confirm" = "y" ]; then
     local flags=-r
     if [ "$1" = '-f' ]; then
@@ -76,18 +76,45 @@ clone_or_pull() {
   fi
 }
 
+# type name
+run_installer() {
+  if "$INSTALLERS_DIR/${1}-install" install "$2" \
+    "$SOURCE_DIR/$type/${2}-pugfile"; then
+    echo "Installed $2"
+  else
+    echo "Failed to install $2"
+  fi
+}
+
+get_name_and_url() {
+  case "$1" in
+    github:)
+      url="https://github.com/$2.git" ;;
+    gitlab:)
+      url="https://gitlab.com/$2.git" ;;
+    *)
+      url="$1"
+      name="$2"
+      if [ ! -z "$3" ]; then
+        echo "Invalid url prefix: $*"
+        exit 1
+      fi
+  esac
+  if [ -z "$name" ]; then
+    name="${url##*/}"
+    name="${name%.git}"
+  fi
+}
+
 defhelp get 'Clone a dependency'
 cmd.get() {
   local type="${1?}"
   if [ -e "$INSTALLERS_DIR/${type}-install" ]; then
-    local url="$2"
-    local name="$3"
-    if [ -z "$name" ]; then
-      name="${url##*/}"
-      name="${name%.git}"
-    fi
+    local name
+    local url
+    get_name_and_url "$2" "$3" "$4"
     if clone_or_pull "$url" "$name" "$SOURCE_DIR/$type"; then
-      "$INSTALLERS_DIR/${type}-install" "$name"
+      run_installer "$type" "$name"
     else
       echo "Failed to install $name"
     fi
@@ -96,12 +123,50 @@ cmd.get() {
     echo "Expected to find in $INSTALLERS_DIR/${type}-install"
     return 1
   fi
+  cmd.rebuild
+}
+
+defhelp rebuild 'Recreate pugfile for type'
+cmd.rebuild() {
+  for folder in "$SOURCE_DIR/"*; do
+    local found=false
+    for _ in "$folder/"*-pugfile; do
+      found=true
+      break
+    done
+    if $found; then
+      cat "$folder/"*-pugfile > "$folder/pug"
+    else
+      echo "No deps found, blanking $folder/pug"
+      echo '' > "$folder/pug"
+    fi
+  done
 }
 
 defhelp remove 'Remove a dependency'
 cmd.remove() {
-  echo "Not implemented"
-  exit 1
+  local dep="${1}"
+  if [ -z "$dep" ]; then
+    echo "Must provide dependency to remove"
+    exit 1
+  fi
+  local flag=-r
+  if [ "$2" = -f ]; then
+    flag=-rf
+  fi
+  local found=false
+  for folder in "$SOURCE_DIR/"*"/$dep"; do
+    found=true
+    echo "Removing: $folder"
+    if ! rm "$flag" "$folder"; then
+      echo "Could not remove $folder"
+      return 1
+    fi
+    if ! rm "$flag" "${folder}-pugfile"; then
+      echo "Could not remove ${folder}-pugfile"
+    fi
+  done
+  cmd.rebuild
 }
 
 defhelp update 'Pull all plugins and re-write pugfiles'
@@ -118,15 +183,14 @@ cmd.update() {
       local type
       type="$(dirname "$module")"
       type="${type##*/}"
-      if ! "$INSTALLERS_DIR/${type}-install" "$name"; then
-        echo "ERROR: Installing $name failed"
-      fi
+      run_installer "$type" "$name"
       (( count+=1 ))
       echo
       echo '-------------------------------------'
       echo
     fi
   done
+  cmd.rebuild
   echo "$count modules updated"
 }
 
@@ -146,7 +210,7 @@ defhelp upgrade 'Upgrade pug and installers'
 cmd.upgrade() {
   echo 'Upgrading Pug...'
   dest="$(mktemp -d)"
-  git clone 'https://github.com/javanut13/pug.git' "$dest"
+  git clone 'https://github.com/willhbr/pug.git' "$dest"
   cd "$dest"
   if [ "$1" != -l ]; then
     echo 'Password may be required to copy pug to /usr/local/bin/pug'
@@ -162,72 +226,11 @@ cmd.upgrade() {
   cp src/installers/* ~/.pug/installers
 }
 
-dependency() {
-  local installer="$1"
-  local url
-  case "$2" in
-    from:)
-      url="$3" ;;
-    github:)
-      url="https://github.com/$3.git" ;;
-    gitlab:)
-      url="https://gitlab.com/$3.git" ;;
-    *)
-      echo "Unknown arg $2"
-      return 1 ;;
-  esac
-  cmd.get "$installer" "$url"
-}
-
 installer_type() {
   local type_name
   type_name="${1##*/}"
   type_name="${type_name%-install}"
   echo "$type_name"
-}
-
-defhelp load 'Used for loading config files'
-cmd.load() {
-  local file="$1"
-  if [ ! -f "$file" ]; then
-    echo "$file does not exist or is not a file"
-    return 1
-  fi
-
-  local type_name
-  for installer in "$INSTALLERS_DIR/"*-install; do
-    type_name="${installer##*/}"
-    type_name="${type_name%-install}"
-    eval "function ${type_name} { dependency '$type_name' \"\$@\"; }"
-  done
-
-  source "$file"
-}
-
-after_install() { true; }
-
-defhelp installer 'Used for loading installers'
-cmd.installer() {
-  local script="$1"
-  source "$script"
-  local type_name
-  type_name="$(installer_type "$script")"
-  local name="$2"
-  if ! is_already_installed "$name"; then
-    echo -n 'Installing... '
-    echo
-    if pugfile_text "$name" >> "$SOURCE_DIR/$type_name/pug"; then
-      after_install new "$name"
-      echo 'Done.'
-    else
-      echo 'Failed.'
-    fi
-  else
-    after_install already "$name"
-  fi
-  if ! grep -q '/vim/pug' "$HOME/.vimrc"; then
-    source_help_text
-  fi
 }
 
 cmd="$1"
