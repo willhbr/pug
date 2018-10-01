@@ -14,7 +14,7 @@ install_from_repo() {
 
   echo 'Copying installers to ~/.pug/installers'
   mkdir -p ~/.pug/installers
-  cp src/installers/* ~/.pug/installers
+  /bin/cp src/installers/* ~/.pug/installers
 }
 
 
