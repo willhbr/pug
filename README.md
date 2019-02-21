@@ -19,34 +19,18 @@ Previously I used git submodules for things that I cared about - but this made i
 Install Pug automatically:
 
 ```shell
-curl https://raw.githubusercontent.com/javanut13/pug/master/install.sh | bash
+curl https://raw.githubusercontent.com/willhbr/pug/master/install.sh | bash
 ```
 
 Or if you don't like piping into Bash:
 
 ```shell
-git clone https://github.com/javanut13/pug.git
+git clone https://github.com/willhbr/pug.git
 cd pug
 ./install.sh
 ```
 
 This adds the `pug` script into `/usr/local/bin` - you can put it anywhere in your `$PATH` if that suits you better. Installers for Vim and ZSH are copied to `~/.pug/installers`. This is where you can add your own installers (for another utility), just make sure it's named `UTILITY-install`.
-
-## Usage with a Config File
-
-Somewhere safe (like your [dotfiles repo](https://github.com/javanut13/dotfiles)) add a `deps.pug` file. This will specify the dependencies you want to load. For example, my config looks like this:
-
-```shell
-#!/usr/local/bin/pug load
-
-zsh from: https://github.com/zsh-users/zsh-autosuggestions.git
-zsh github: zsh-users/zsh-syntax-highlighting
-vim github: ctrlpvim/ctrlp.vim
-vim github: tpope/vim-fireplace
-vim github: guns/vim-sexp
-```
-
-This is a shell script that is loaded by Pug, which allows it to have some helpers for specifying the dependencies. Currently these are all in the format `type from: url` including abbreviations for GitHub and GitLab URLs.
 
 ## Manual Usage
 
@@ -77,6 +61,14 @@ All of your sources - everything stored in `.pug/source` - can be removed with:
 
 ```shell
 pug wipe
+```
+
+# Remove plugins
+
+To remove a plugin (you may have to restart you shell/tmux/editor) to unload it:
+
+```shell
+pug remove vim-tmux-navigator
 ```
 
 ## Installers
