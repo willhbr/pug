@@ -1,7 +1,12 @@
 #!/bin/bash
 
 if [ "$1" = install ]; then
-  echo "source '$SOURCE_DIR/zsh/$2/$2.zsh'" > "$3"
+  dir="$SOURCE_DIR/zsh/$2"
+  if [ -e "$dir/$2.plugin.zsh" ]; then
+    echo "source '$dir/$2.plugin.zsh'" > "$3"
+  else
+    echo "source '$dir/$2.zsh'" > "$3"
+  fi
 else
   cat <<-EOF
 Make sure this is in your .zshrc file:
